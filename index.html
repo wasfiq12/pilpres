@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+        <link rel="stylesheet" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/leaflet-control-geocoder.Geocoder.css">
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        </style>
+        <title></title>
+    </head>
+    <body>
+        <div id="map">
+        </div>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/L.Control.Layers.Tree.min.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/leaflet-control-geocoder.Geocoder.js"></script>
+        <script src="data/GanjarPranowoMahfudMD_1.js"></script>
+        <script src="data/PrabowoSubiantoGibranRakabumingRaka_2.js"></script>
+        <script src="data/AniesBaswedanMuhaiminIskandar_3.js"></script>
+        <script>
+        var highlightLayer;
+        function highlightFeature(e) {
+            highlightLayer = e.target;
+
+            if (e.target.feature.geometry.type === 'LineString' || e.target.feature.geometry.type === 'MultiLineString') {
+              highlightLayer.setStyle({
+                color: '#ffff00',
+              });
+            } else {
+              highlightLayer.setStyle({
+                fillColor: '#ffff00',
+                fillOpacity: 1
+              });
+            }
+        }
+        var map = L.map('map', {
+            zoomControl:false, maxZoom:28, minZoom:1
+        })
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        // remove popup's row if "visible-with-data"
+        function removeEmptyRowsFromPopupContent(content, feature) {
+         var tempDiv = document.createElement('div');
+         tempDiv.innerHTML = content;
+         var rows = tempDiv.querySelectorAll('tr');
+         for (var i = 0; i < rows.length; i++) {
+             var td = rows[i].querySelector('td.visible-with-data');
+             var key = td ? td.id : '';
+             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                 rows[i].parentNode.removeChild(rows[i]);
+             }
+         }
+         return tempDiv.innerHTML;
+        }
+        // add class to format popup if it contains media
+		function addClassToPopupIfMedia(content, popup) {
+			var tempDiv = document.createElement('div');
+			tempDiv.innerHTML = content;
+			if (tempDiv.querySelector('td img')) {
+				popup._contentNode.classList.add('media');
+					// Delay to force the redraw
+					setTimeout(function() {
+						popup.update();
+					}, 10);
+			} else {
+				popup._contentNode.classList.remove('media');
+			}
+		}
+        var zoomControl = L.control.zoom({
+            position: 'topleft'
+        }).addTo(map);
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+            if (bounds_group.getLayers().length) {
+                map.fitBounds(bounds_group.getBounds());
+            }
+        }
+        map.createPane('pane_OSM_0');
+        map.getPane('pane_OSM_0').style.zIndex = 400;
+        var layer_OSM_0 = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            pane: 'pane_OSM_0',
+            opacity: 1.0,
+            attribution: '',
+            minZoom: 1,
+            maxZoom: 28,
+            minNativeZoom: 0,
+            maxNativeZoom: 18
+        });
+        layer_OSM_0;
+        map.addLayer(layer_OSM_0);
+        function pop_GanjarPranowoMahfudMD_1(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (var i in e.target._eventParents) {
+                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
+                            e.target._eventParents[i].resetStyle(e.target);
+                        }
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Kabupaten/Kota</th>\
+                        <td class="visible-with-data" id="Kabupaten/Kota">' + (feature.properties['Kabupaten/Kota'] !== null ? autolinker.link(feature.properties['Kabupaten/Kota'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Ganjar Pranowo - Mahfud MD</th>\
+                        <td class="visible-with-data" id="Ganjar Pranowo - Mahfud MD">' + (feature.properties['Ganjar Pranowo - Mahfud MD'] !== null ? autolinker.link(feature.properties['Ganjar Pranowo - Mahfud MD'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_GanjarPranowoMahfudMD_1_0(feature) {
+            if (feature.properties['Ganjar Pranowo - Mahfud MD'] >= 16428.000000 && feature.properties['Ganjar Pranowo - Mahfud MD'] <= 19828.200000 ) {
+                return {
+                pane: 'pane_GanjarPranowoMahfudMD_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(247,252,245,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['Ganjar Pranowo - Mahfud MD'] >= 19828.200000 && feature.properties['Ganjar Pranowo - Mahfud MD'] <= 23228.400000 ) {
+                return {
+                pane: 'pane_GanjarPranowoMahfudMD_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(201,234,194,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['Ganjar Pranowo - Mahfud MD'] >= 23228.400000 && feature.properties['Ganjar Pranowo - Mahfud MD'] <= 26628.600000 ) {
+                return {
+                pane: 'pane_GanjarPranowoMahfudMD_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(123,199,124,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['Ganjar Pranowo - Mahfud MD'] >= 26628.600000 && feature.properties['Ganjar Pranowo - Mahfud MD'] <= 30028.800000 ) {
+                return {
+                pane: 'pane_GanjarPranowoMahfudMD_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(42,146,75,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['Ganjar Pranowo - Mahfud MD'] >= 30028.800000 && feature.properties['Ganjar Pranowo - Mahfud MD'] <= 33429.000000 ) {
+                return {
+                pane: 'pane_GanjarPranowoMahfudMD_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,68,27,1.0)',
+                interactive: true,
+            }
+            }
+        }
+        map.createPane('pane_GanjarPranowoMahfudMD_1');
+        map.getPane('pane_GanjarPranowoMahfudMD_1').style.zIndex = 401;
+        map.getPane('pane_GanjarPranowoMahfudMD_1').style['mix-blend-mode'] = 'normal';
+        var layer_GanjarPranowoMahfudMD_1 = new L.geoJson(json_GanjarPranowoMahfudMD_1, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_GanjarPranowoMahfudMD_1',
+            layerName: 'layer_GanjarPranowoMahfudMD_1',
+            pane: 'pane_GanjarPranowoMahfudMD_1',
+            onEachFeature: pop_GanjarPranowoMahfudMD_1,
+            style: style_GanjarPranowoMahfudMD_1_0,
+        });
+        bounds_group.addLayer(layer_GanjarPranowoMahfudMD_1);
+        map.addLayer(layer_GanjarPranowoMahfudMD_1);
+        function pop_PrabowoSubiantoGibranRakabumingRaka_2(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (var i in e.target._eventParents) {
+                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
+                            e.target._eventParents[i].resetStyle(e.target);
+                        }
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Kabupaten/Kota</th>\
+                        <td class="visible-with-data" id="Kabupaten/Kota">' + (feature.properties['Kabupaten/Kota'] !== null ? autolinker.link(feature.properties['Kabupaten/Kota'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Prabowo Subianto - Gibran Rakabuming Raka</th>\
+                        <td class="visible-with-data" id="Prabowo Subianto - Gibran Rakabuming Raka">' + (feature.properties['Prabowo Subianto - Gibran Rakabuming Raka'] !== null ? autolinker.link(feature.properties['Prabowo Subianto - Gibran Rakabuming Raka'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_PrabowoSubiantoGibranRakabumingRaka_2_0(feature) {
+            if (feature.properties['Prabowo Subianto - Gibran Rakabuming Raka'] >= 52452.000000 && feature.properties['Prabowo Subianto - Gibran Rakabuming Raka'] <= 62859.200000 ) {
+                return {
+                pane: 'pane_PrabowoSubiantoGibranRakabumingRaka_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(247,251,255,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['Prabowo Subianto - Gibran Rakabuming Raka'] >= 62859.200000 && feature.properties['Prabowo Subianto - Gibran Rakabuming Raka'] <= 73266.400000 ) {
+                return {
+                pane: 'pane_PrabowoSubiantoGibranRakabumingRaka_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(200,220,240,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['Prabowo Subianto - Gibran Rakabuming Raka'] >= 73266.400000 && feature.properties['Prabowo Subianto - Gibran Rakabuming Raka'] <= 83673.600000 ) {
+                return {
+                pane: 'pane_PrabowoSubiantoGibranRakabumingRaka_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(115,178,216,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['Prabowo Subianto - Gibran Rakabuming Raka'] >= 83673.600000 && feature.properties['Prabowo Subianto - Gibran Rakabuming Raka'] <= 94080.800000 ) {
+                return {
+                pane: 'pane_PrabowoSubiantoGibranRakabumingRaka_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(41,121,185,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['Prabowo Subianto - Gibran Rakabuming Raka'] >= 94080.800000 && feature.properties['Prabowo Subianto - Gibran Rakabuming Raka'] <= 104488.000000 ) {
+                return {
+                pane: 'pane_PrabowoSubiantoGibranRakabumingRaka_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(8,48,107,1.0)',
+                interactive: true,
+            }
+            }
+        }
+        map.createPane('pane_PrabowoSubiantoGibranRakabumingRaka_2');
+        map.getPane('pane_PrabowoSubiantoGibranRakabumingRaka_2').style.zIndex = 402;
+        map.getPane('pane_PrabowoSubiantoGibranRakabumingRaka_2').style['mix-blend-mode'] = 'normal';
+        var layer_PrabowoSubiantoGibranRakabumingRaka_2 = new L.geoJson(json_PrabowoSubiantoGibranRakabumingRaka_2, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_PrabowoSubiantoGibranRakabumingRaka_2',
+            layerName: 'layer_PrabowoSubiantoGibranRakabumingRaka_2',
+            pane: 'pane_PrabowoSubiantoGibranRakabumingRaka_2',
+            onEachFeature: pop_PrabowoSubiantoGibranRakabumingRaka_2,
+            style: style_PrabowoSubiantoGibranRakabumingRaka_2_0,
+        });
+        bounds_group.addLayer(layer_PrabowoSubiantoGibranRakabumingRaka_2);
+        function pop_AniesBaswedanMuhaiminIskandar_3(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (var i in e.target._eventParents) {
+                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
+                            e.target._eventParents[i].resetStyle(e.target);
+                        }
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Kabupaten/Kota</th>\
+                        <td class="visible-with-data" id="Kabupaten/Kota">' + (feature.properties['Kabupaten/Kota'] !== null ? autolinker.link(feature.properties['Kabupaten/Kota'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Anies Baswedan - Muhaimin Iskandar</th>\
+                        <td class="visible-with-data" id="Anies Baswedan - Muhaimin Iskandar">' + (feature.properties['Anies Baswedan - Muhaimin Iskandar'] !== null ? autolinker.link(feature.properties['Anies Baswedan - Muhaimin Iskandar'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_AniesBaswedanMuhaiminIskandar_3_0(feature) {
+            if (feature.properties['Anies Baswedan - Muhaimin Iskandar'] >= 10783.000000 && feature.properties['Anies Baswedan - Muhaimin Iskandar'] <= 19522.200000 ) {
+                return {
+                pane: 'pane_AniesBaswedanMuhaiminIskandar_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,255,255,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['Anies Baswedan - Muhaimin Iskandar'] >= 19522.200000 && feature.properties['Anies Baswedan - Muhaimin Iskandar'] <= 28261.400000 ) {
+                return {
+                pane: 'pane_AniesBaswedanMuhaiminIskandar_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,191,191,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['Anies Baswedan - Muhaimin Iskandar'] >= 28261.400000 && feature.properties['Anies Baswedan - Muhaimin Iskandar'] <= 37000.600000 ) {
+                return {
+                pane: 'pane_AniesBaswedanMuhaiminIskandar_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,128,128,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['Anies Baswedan - Muhaimin Iskandar'] >= 37000.600000 && feature.properties['Anies Baswedan - Muhaimin Iskandar'] <= 45739.800000 ) {
+                return {
+                pane: 'pane_AniesBaswedanMuhaiminIskandar_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,64,64,1.0)',
+                interactive: true,
+            }
+            }
+            if (feature.properties['Anies Baswedan - Muhaimin Iskandar'] >= 45739.800000 && feature.properties['Anies Baswedan - Muhaimin Iskandar'] <= 54479.000000 ) {
+                return {
+                pane: 'pane_AniesBaswedanMuhaiminIskandar_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,0,0,1.0)',
+                interactive: true,
+            }
+            }
+        }
+        map.createPane('pane_AniesBaswedanMuhaiminIskandar_3');
+        map.getPane('pane_AniesBaswedanMuhaiminIskandar_3').style.zIndex = 403;
+        map.getPane('pane_AniesBaswedanMuhaiminIskandar_3').style['mix-blend-mode'] = 'normal';
+        var layer_AniesBaswedanMuhaiminIskandar_3 = new L.geoJson(json_AniesBaswedanMuhaiminIskandar_3, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_AniesBaswedanMuhaiminIskandar_3',
+            layerName: 'layer_AniesBaswedanMuhaiminIskandar_3',
+            pane: 'pane_AniesBaswedanMuhaiminIskandar_3',
+            onEachFeature: pop_AniesBaswedanMuhaiminIskandar_3,
+            style: style_AniesBaswedanMuhaiminIskandar_3_0,
+        });
+        bounds_group.addLayer(layer_AniesBaswedanMuhaiminIskandar_3);
+        map.addLayer(layer_AniesBaswedanMuhaiminIskandar_3);
+        var osmGeocoder = new L.Control.Geocoder({
+            collapsed: true,
+            position: 'topleft',
+            text: 'Search',
+            title: 'Testing'
+        }).addTo(map);
+        document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
+        .className += ' fa fa-search';
+        document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
+        .title += 'Search for a place';
+        var overlaysTree = [
+            {label: 'Anies Baswedan - Muhaimin Iskandaredan - Muhaimin Iskandar<br /><table><tr><td style="text-align: center;"><img src="legend/AniesBaswedanMuhaiminIskandar_3_10783195220.png" /></td><td>10783 - 19522</td></tr><tr><td style="text-align: center;"><img src="legend/AniesBaswedanMuhaiminIskandar_3_19522282611.png" /></td><td>19522 - 28261</td></tr><tr><td style="text-align: center;"><img src="legend/AniesBaswedanMuhaiminIskandar_3_28261370012.png" /></td><td>28261 - 37001</td></tr><tr><td style="text-align: center;"><img src="legend/AniesBaswedanMuhaiminIskandar_3_37001457403.png" /></td><td>37001 - 45740</td></tr><tr><td style="text-align: center;"><img src="legend/AniesBaswedanMuhaiminIskandar_3_45740544794.png" /></td><td>45740 - 54479</td></tr></table>', layer: layer_AniesBaswedanMuhaiminIskandar_3},
+            {label: 'Prabowo Subianto - Gibran Rakabuming Rakabianto - Gibran Rakabuming Raka<br /><table><tr><td style="text-align: center;"><img src="legend/PrabowoSubiantoGibranRakabumingRaka_2_52452628590.png" /></td><td>52452 - 62859</td></tr><tr><td style="text-align: center;"><img src="legend/PrabowoSubiantoGibranRakabumingRaka_2_62859732661.png" /></td><td>62859 - 73266</td></tr><tr><td style="text-align: center;"><img src="legend/PrabowoSubiantoGibranRakabumingRaka_2_73266836742.png" /></td><td>73266 - 83674</td></tr><tr><td style="text-align: center;"><img src="legend/PrabowoSubiantoGibranRakabumingRaka_2_83674940813.png" /></td><td>83674 - 94081</td></tr><tr><td style="text-align: center;"><img src="legend/PrabowoSubiantoGibranRakabumingRaka_2_940811044884.png" /></td><td>94081 - 104488</td></tr></table>', layer: layer_PrabowoSubiantoGibranRakabumingRaka_2},
+            {label: 'Ganjar Pranowo - Mahfud MDnowo - Mahfud MD<br /><table><tr><td style="text-align: center;"><img src="legend/GanjarPranowoMahfudMD_1_16428198280.png" /></td><td>16428 - 19828</td></tr><tr><td style="text-align: center;"><img src="legend/GanjarPranowoMahfudMD_1_19828232281.png" /></td><td>19828 - 23228</td></tr><tr><td style="text-align: center;"><img src="legend/GanjarPranowoMahfudMD_1_23228266292.png" /></td><td>23228 - 26629</td></tr><tr><td style="text-align: center;"><img src="legend/GanjarPranowoMahfudMD_1_26629300293.png" /></td><td>26629 - 30029</td></tr><tr><td style="text-align: center;"><img src="legend/GanjarPranowoMahfudMD_1_30029334294.png" /></td><td>30029 - 33429</td></tr></table>', layer: layer_GanjarPranowoMahfudMD_1},
+            {label: "OSM", layer: layer_OSM_0},]
+        var lay = L.control.layers.tree(null, overlaysTree,{
+            //namedToggle: true,
+            //selectorBack: false,
+            //closedSymbol: '&#8862; &#x1f5c0;',
+            //openedSymbol: '&#8863; &#x1f5c1;',
+            //collapseAll: 'Collapse all',
+            //expandAll: 'Expand all',
+            collapsed: false, 
+        });
+        lay.addTo(map);
+		document.addEventListener("DOMContentLoaded", function() {
+            // set new Layers List height which considers toggle icon
+            function newLayersListHeight() {
+                var layerScrollbarElement = document.querySelector('.leaflet-control-layers-scrollbar');
+                if (layerScrollbarElement) {
+                    var layersListElement = document.querySelector('.leaflet-control-layers-list');
+                    var originalHeight = layersListElement.style.height 
+                        || window.getComputedStyle(layersListElement).height;
+                    var newHeight = parseFloat(originalHeight) - 50;
+                    layersListElement.style.height = newHeight + 'px';
+                }
+            }
+            var isLayersListExpanded = true;
+            var controlLayersElement = document.querySelector('.leaflet-control-layers');
+            var toggleLayerControl = document.querySelector('.leaflet-control-layers-toggle');
+            // toggle Collapsed/Expanded and apply new Layers List height
+            toggleLayerControl.addEventListener('click', function() {
+                if (isLayersListExpanded) {
+                    controlLayersElement.classList.remove('leaflet-control-layers-expanded');
+                } else {
+                    controlLayersElement.classList.add('leaflet-control-layers-expanded');
+                }
+                isLayersListExpanded = !isLayersListExpanded;
+                newLayersListHeight()
+            });	
+			// apply new Layers List height if toggle layerstree
+			if (controlLayersElement) {
+				controlLayersElement.addEventListener('click', function(event) {
+					var toggleLayerHeaderPointer = event.target.closest('.leaflet-layerstree-header-pointer span');
+					if (toggleLayerHeaderPointer) {
+						newLayersListHeight();
+					}
+				});
+			}
+            // Collapsed/Expanded at Start to apply new height
+            setTimeout(function() {
+                toggleLayerControl.click();
+            }, 10);
+            setTimeout(function() {
+                toggleLayerControl.click();
+            }, 10);
+            // Collapsed touch/small screen
+            var isSmallScreen = window.innerWidth < 650;
+            if (isSmallScreen) {
+                setTimeout(function() {
+                    controlLayersElement.classList.remove('leaflet-control-layers-expanded');
+                    isLayersListExpanded = !isLayersListExpanded;
+                }, 500);
+            }  
+        });       
+        setBounds();
+        </script>
+    </body>
+</html>
